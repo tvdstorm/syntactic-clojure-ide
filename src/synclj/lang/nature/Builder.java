@@ -1,5 +1,6 @@
 package synclj.lang.nature;
 
+import java.net.URI;
 import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -15,12 +16,29 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.pdb.facts.IValueFactory;
+import org.rascalmpl.values.ValueFactoryFactory;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import clojure.lang.Compiler;
+import clojure.lang.SyncljLispReader;
+
+import synclj.lang.ide.Activator;
+import synclj.lang.ide.ISyncljResources;
+import synclj.util.Bridge2Rascal;
+
 public class Builder extends IncrementalProjectBuilder {
+	private static IValueFactory vf = ValueFactoryFactory.getValueFactory();
+	
+	public Builder() {
+		URI uri = URI.create("bundleresource://" + Activator.getInstance().getBundle().getBundleId() + "/src");
+		// yank the default reader.
+		SyncljLispReader.bridge = new Bridge2Rascal(vf, uri);
+	}
 
 	class SampleDeltaVisitor implements IResourceDeltaVisitor {
 		/*
@@ -40,7 +58,12 @@ public class Builder extends IncrementalProjectBuilder {
 				break;
 			case IResourceDelta.CHANGED:
 				// handle changed resource
-				System.err.println("Compiling changed file...");
+				String ext = resource.getFileExtension();
+				if (ext != null && ext.equals(ISyncljResources.SYNCLJ_EXT)) {
+					System.err.println("The file were compiling: " + resource);
+					IPath path = resource.getFullPath()
+					Compiler.loadPT(fileRef, sourcePath, sourceName))
+				}
 				checkXML(resource);
 				break;
 			}
