@@ -15,6 +15,9 @@ import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
+import synclj.lang.editor.ClojureSyntaxProperties;
+import synclj.lang.editor.NodeLocator;
+import synclj.lang.editor.TokenIterator;
 import synclj.lang.ide.Activator;
 
 public class ParseController implements IParseController {
@@ -58,20 +61,17 @@ public class ParseController implements IParseController {
 
 	@Override
 	public ISourcePositionLocator getSourcePositionLocator() {
-		// TODO Auto-generated method stub
-		return null;
+		return new NodeLocator();
 	}
 
 	@Override
 	public ILanguageSyntaxProperties getSyntaxProperties() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ClojureSyntaxProperties();
 	}
 
 	@Override
 	public Iterator getTokenIterator(IRegion arg0) {
-		// TODO Auto-generated method stub
-		return null;
+		return parseTree != null ? new TokenIterator(false, parseTree) : null;
 	}
 
 	@Override
@@ -101,7 +101,6 @@ public class ParseController implements IParseController {
 		if (doc == null) {
 			return null;
 		}
-		System.err.println("Parsing " + doc.get());
 		this.document = doc;
 		return parse(doc.get(), monitor);
 	}
