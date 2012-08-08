@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.imp.runtime.languageDescription">
+      <language
+            description="Clojure with Syntactic Macros"
+            extensions="clj"
+            language="Syntactic Clojure">
+      </language>
+   </extension>
+   <extension
+         point="org.eclipse.imp.runtime.parser">
+      <parser
+            class="synclj.lang.parser.ParseController"
+            language="Syntactic Clojure">
+      </parser>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            class="synclj.lang.perspective.Factory"
+            id="synclj.lang.perspective"
+            name="Syntactic Clojure">
+      </perspective>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="synclj.lang.editor.SyncljEditor"
+            default="true"
+            filenames="*.clj"
+            id="syntactic-clojure.editor"
+            name="Syntactic Clojure Editor">
+      </editor>
+   </extension>
+   <extension
+         id="syntactic_clojure_ide.synclj_builder"
+         name="synclj_builder"
+         point="org.eclipse.core.resources.builders">
+      <builder
+            hasNature="true">
+         <run
+               class="synclj.lang.nature.Builder">
+         </run>
+      </builder>
+   </extension>
+   <extension
+         id="syntactic_clojure_ide.synclj_nature"
+         name="Syntactic Clojure Project Nature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="synclj.lang.nature.Nature">
+         </run>
+      </runtime>
+      <builder
+            id="syntactic_clojure_ide.synclj_builder">
+      </builder>
+   </extension>
+   <extension
+         id="xmlProblem"
+         name="XML Problem"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="true"
+            id="syntactic-clojure-ide.contribution1"
+            nameFilter="*"
+            objectClass="org.eclipse.core.resources.IProject">
+         <action
+               class="synclj.lang.nature.ToggleNatureAction"
+               enablesFor="+"
+               id="syntactic-clojure-ide.addRemoveNatureAction"
+               label="Add/Remove Syntactic Clojure Nature"
+               menubarPath="additions">
+         </action>
+      </objectContribution>
+   </extension>
+
+</plugin>
