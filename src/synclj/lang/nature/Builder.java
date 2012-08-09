@@ -1,5 +1,6 @@
 package synclj.lang.nature;
 
+import java.io.PrintWriter;
 import java.net.URI;
 import java.util.Map;
 
@@ -16,28 +17,48 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.imp.pdb.facts.IValueFactory;
+import org.osgi.framework.Bundle;
+import org.rascalmpl.interpreter.Evaluator;
+import org.rascalmpl.interpreter.env.GlobalEnvironment;
+import org.rascalmpl.interpreter.env.ModuleEnvironment;
+import org.rascalmpl.uri.URIResolverRegistry;
 import org.rascalmpl.values.ValueFactoryFactory;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import clojure.lang.Compiler;
-import clojure.lang.SyncljLispReader;
-
-import synclj.lang.ide.Activator;
 import synclj.lang.ide.ISyncljResources;
+import synclj.lang.uri.BundleURIResolver;
 import synclj.util.Bridge2Rascal;
+import clojure.lang.SyncljLispReader;
 
 public class Builder extends IncrementalProjectBuilder {
 	private static IValueFactory vf = ValueFactoryFactory.getValueFactory();
+	private static boolean bridgeYanked = false;
 	
 	public Builder() {
-		URI uri = URI.create("bundleresource://" + Activator.getInstance().getBundle().getBundleId() + "/src");
-		// yank the default reader.
-		SyncljLispReader.bridge = new Bridge2Rascal(vf, uri);
+		if (!bridgeYanked) {
+			
+			GlobalEnvironment heap = new GlobalEnvironment();
+			ModuleEnvironment scope = new ModuleEnvironment(
+					"___parsergenerator_synclj___", heap);
+			PrintWriter out = new PrintWriter(System.out);
+			Evaluator eval = new Evaluator(vf, out, out, scope, heap);
+			URIResolverRegistry resolverRegistry = eval.getResolverRegistry();
+			BundleURIResolver bundleResolver = new BundleURIResolver(resolverRegistry);
+			resolverRegistry.registerInput(bundleResolver);
+			resolverRegistry.registerOutput(bundleResolver);
+			Bundle bundle = Platform.getBundle("syntactic-clojure");
+			long id = bundle.getBundleId(); 
+			URI uri = URI.create("bundleresource://" + id + "/src");
+			eval.addRascalSearchPath(uri);
+			// yank the default reader.
+			SyncljLispReader.bridge = new Bridge2Rascal(vf, eval);
+			bridgeYanked = true;
+		}
 	}
 
 	class SampleDeltaVisitor implements IResourceDeltaVisitor {
@@ -61,8 +82,8 @@ public class Builder extends IncrementalProjectBuilder {
 				String ext = resource.getFileExtension();
 				if (ext != null && ext.equals(ISyncljResources.SYNCLJ_EXT)) {
 					System.err.println("The file were compiling: " + resource);
-					IPath path = resource.getFullPath()
-					Compiler.loadPT(fileRef, sourcePath, sourceName))
+//					IPath path = resource.getFullPath()
+//					Compiler.loadPT(fileRef, sourcePath, sourceName))
 				}
 				checkXML(resource);
 				break;
